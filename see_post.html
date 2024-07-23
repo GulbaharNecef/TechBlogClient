@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Blog</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<body>
+    <header class="header">
+        <a href="" class="logo">Tech Blog</a>
+        <input class="menu-btn" type="checkbox" id="menu-btn" />
+        <label class="menu-icon" for="menu-btn"><span class="navicon"></span></label>
+        <ul class="menu">
+          <li><a href="index.html">Home</a></li>
+          <li id="write-link" style="display: none;"><a href="add_post.html"><i class="fa-solid fa-pencil fa-xs"></i> Write</a></li>
+          <li id="auth-link"><a href="#" id="auth-link-text"></a></li>
+        </ul>
+      </header>
+    <div class="container">
+        <div class="main-content">
+            <div id="post-container" style="text-align: center;">
+                <!-- Postun detallari burda olacaq js nen-->
+            </div>
+        </div>
+    </div>
+
+    <script src="auth_script.js"></script>
+    <script>
+         document.addEventListener('DOMContentLoaded', function() {
+            showWriteLink();
+            updateAuthLink();
+            fetchPostDetails();
+        });
+
+        function fetchPostDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('id');
+
+            if (!postId) {
+                displayFallbackContent('No post ID found in URL.');
+                return;
+            }
+
+            fetch(`https://localhost:7185/api/BlogPost/${postId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    if (response && response.data) {
+                        displayPostDetails(response.data);
+                    } else {
+                        throw new Error('Invalid response format');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching post details:', error);
+                    displayFallbackContent('Error fetching post details.');
+                });
+        }
+        function displayPostDetails(post) {
+            const postContainer = document.getElementById('post-container');
+            postContainer.innerHTML = `
+                <div class="post-image-wrapper">
+                    <img src="${post.coverPhotoUrl}" alt="Cover Photo" class="post-image">
+                </div>
+                <h2>${post.title}</h2>
+                <p>by ${post.user}</p>
+                <p>${post.content}</p>
+            `;
+        }
+
+        function displayFallbackContent() {
+            const postContainer = document.getElementById('post-container');
+            postContainer.innerHTML = `
+                <p>Unable to load post details at the moment. Please try again later.</p>
+            `;
+        }
+    </script>
+</body>
+</html>
